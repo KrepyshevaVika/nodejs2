@@ -2,26 +2,27 @@ var express = require("express");
 var app = require("express")();
 var cors = require('cors')
 var bodyParser = require('body-parser');
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var Pusher = require('pusher');
 
 app.use(bodyParser.json());
 app.use(cors());
 //app.use(express.static('../react/build'));
-
-io.on('connection', function(client){
-    console.log('user connected');
-
-    client.on('subscribeToSlider', (targetValue) => {
-        console.log(targetValue);
-        io.emit( 'slider', targetValue );
-    });
+const pusher = new Pusher({
+    key: 'APP_KEY',
 });
-  
+
 require('./route/node.route.js')(app);
+
+app.post('/slider', (req, res) => {
+    console.log(req.body);
+    const payload = req.body;
+    pusher.trigger('slider', 'targetValue', payload);
+    console.log(targetValue);
+    res.send(payload)
+});
 
 const PORT = process.env.PORT || 8080;
 
-http.listen(PORT, () => {
+app.listen(PORT, () => {
     console.log(`Server is running.. on Port: ${PORT}`);
 });
